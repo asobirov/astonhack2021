@@ -1,8 +1,6 @@
 import type { NextPage } from 'next';
 import { Stack, Heading, Flex, Box } from '@chakra-ui/react';
 
-
-import * as tf from "@tensorflow/tfjs";
 import * as handpose from "@tensorflow-models/handpose";
 import "@tensorflow/tfjs-backend-webgl";
 
@@ -14,19 +12,20 @@ const Home: NextPage = () => {
   const webcamRef = useRef(null);
   const canvasRef = useRef(null);
   const [isHandposeReady, setIsHandposeReady] = useState(false);
+  const [gesture, setGesture] = useState(null);
 
   const initHandpose = useCallback(async () => {
     const net = await handpose.load();
     setIsHandposeReady(true);
     setInterval(async () => {
-      detect(net, webcamRef, canvasRef);
+      detect(net, webcamRef, canvasRef, setGesture);
     }, 100);
   }, []);
 
   initHandpose();
 
   return (
-    <Flex>
+    <Flex direction={"column"}>
       <Flex
         position={'relative'}
         align='center'
@@ -42,15 +41,18 @@ const Home: NextPage = () => {
           forceScreenshotSourceSize={false}
           mirrored={false}
           onUserMedia={() => null}
-          onUserMediaError={() => null} 
+          onUserMediaError={() => null}
           screenshotFormat={'image/webp'}
           screenshotQuality={1}
           position={'absolute'}
           top={0}
+          filter={gesture === 'middleFinger' ? 'blur(10px)' : 'none'}
           h={'100%'}
         />
-        {isHandposeReady && <Box>
-          <Heading>Loading...</Heading>
+        {!isHandposeReady && <Box>
+          <Heading
+            transform={"scaleX(-1)"}
+          >Loading...</Heading>
         </Box>}
         <ChakraCanvas
           ref={canvasRef}
@@ -59,6 +61,7 @@ const Home: NextPage = () => {
           h={'100%'}
         />
       </Flex>
+      {gesture}
     </Flex>
   )
 }

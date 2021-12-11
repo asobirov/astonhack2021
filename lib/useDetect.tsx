@@ -1,5 +1,4 @@
-import * as fingerpose from "fingerpose";
-import { FingerJoints } from "./types";
+import * as fp from "fingerpose";
 
 const fingerJoints: any = {
     thumb: [0, 1, 2, 3, 4],
@@ -9,7 +8,7 @@ const fingerJoints: any = {
     pinky: [0, 17, 18, 19, 20],
 };
 
-export const detect = async (net: any, webRef: any, canvasRef: any) => {
+export const detect = async (net: any, webRef: any, canvasRef: any, setGesture: any) => {
 
     // check data
     if (typeof webRef.current !== 'undefined' && webRef.current !== null && webRef.current.video.readyState === 4) {
@@ -25,15 +24,37 @@ export const detect = async (net: any, webRef: any, canvasRef: any) => {
         const hand = await net.estimateHands(video);
         // console.log(hand);
 
-        // if (hand.length > 0) {
-        //     const GE = new fingerpose.GestureEstimation([
-        //         fingerpose.Gestures.VictoryGesture,
-        //         fingerpose.Gestures.ThumbUpGesture,
-        //     ]);
+        if (hand.length > 0) {
+            const middleFingerGesture = new fp.GestureDescription("middleFinger");
+            middleFingerGesture.addCurl(fp.Finger.Middle, fp.FingerCurl.NoCurl);
+            for (let finger of [fp.Finger.Index, fp.Finger.Ring, fp.Finger.Pinky]) {
+                middleFingerGesture.addCurl(finger, fp.FingerCurl.FullCurl, 1.0);
+                middleFingerGesture.addCurl(finger, fp.FingerCurl.HalfCurl, 0.9);
+            }
 
-        //     const gesture = await GE.estimate(hand[0].landmarks, 8);
-        //     console.log(gesture);
-        // }
+            const GE = new fp.GestureEstimator([
+                fp.Gestures.ThumbsUpGesture,
+                middleFingerGesture,
+            ]);
+            const gesture = await GE.estimate(hand[0].landmarks, 8);
+            // console.log(gesture);
+            if (gesture.gestures !== undefined && gesture.gestures.length > 0) {
+                console.log(gesture.gestures);
+
+                const confidence = gesture.gestures.map(
+                    (prediction: any) => {
+                        console.log(prediction.score);
+                        return prediction.score;
+                    }
+                );
+                const maxConfidence = confidence.indexOf(
+                    Math.max.apply(null, confidence)
+                );
+                setGesture(gesture.gestures[maxConfidence].name);
+            } else {
+                setGesture(null);
+            }
+        }
 
         const ctx = canvas.getContext('2d');
         drawHand(hand, ctx);
@@ -53,21 +74,21 @@ const drawHand = (predictions: any, ctx: any) => {
                     ctx.beginPath();
                     ctx.moveTo(first[0], first[1]);
                     ctx.lineTo(second[0], second[1]);
-                    
+
                     ctx.strokeStyle = '#00ff00';
                     ctx.lineWidth = 2;
                     ctx.stroke();
                 }
             }
-                landmarks.forEach((landmark: any) => {
-                    const x = landmark[0];
-                    const y = landmark[1];
+            landmarks.forEach((landmark: any) => {
+                const x = landmark[0];
+                const y = landmark[1];
 
-                    ctx.beginPath();
-                    ctx.arc(x, y, 8, 0, 8 * Math.PI);
-                    ctx.fillStyle = 'red';
-                    ctx.fill();
-                });
+                ctx.beginPath();
+                ctx.arc(x, y, 8, 0, 8 * Math.PI);
+                ctx.fillStyle = 'red';
+                ctx.fill();
             });
+        });
     }
 }
