@@ -1,4 +1,14 @@
-import * as fp from "fingerpose";
+type Gest = {
+    [key: number]: { name: string, color: string };
+}
+
+const gestures: Gest = {
+    1: { name: 'Hello', color: 'red' },
+    2: { name: 'Thank You', color: 'yellow' },
+    3: { name: 'I Love You', color: 'lime' },
+    4: { name: 'Yes', color: 'blue' },
+    5: { name: 'No', color: 'purple' },
+};
 
 const fingerJoints: any = {
     thumb: [0, 1, 2, 3, 4],
@@ -7,62 +17,31 @@ const fingerJoints: any = {
     ringFinger: [0, 13, 14, 15, 16],
     pinky: [0, 17, 18, 19, 20],
 };
+export const drawRect = (boxes: any, classes: any, scores: any, threshold: any, imgWidth: any, imgHeight: any, ctx: any) => {
+    for (let i = 0; i <= boxes.length; i++) {
+        if (boxes[i] && classes[i] && scores[i] > threshold) {
+            // Extract variables
+            const [y, x, height, width] = boxes[i]
+            const text = classes[i]
 
-export const detect = async (net: any, webRef: any, canvasRef: any, setGesture: any) => {
+            // Set styling
+            ctx.strokeStyle = gestures[text]['color']
+            ctx.lineWidth = 10
+            ctx.fillStyle = 'white'
+            ctx.font = '30px Arial'
 
-    // check data
-    if (typeof webRef.current !== 'undefined' && webRef.current !== null && webRef.current.video.readyState === 4) {
-        const video = webRef.current.video;
-        const canvas = canvasRef.current;
+            // DRAW!!
+            ctx.beginPath()
+            ctx.fillText(gestures[text]['name'] + ' - ' + Math.round(scores[i] * 100) / 100, x * imgWidth, y * imgHeight - 10)
+            ctx.rect(x * imgWidth, y * imgHeight, width * imgWidth / 2, height * imgHeight / 1.5);
+            ctx.stroke()
 
-        const videoWidth = video.videoWidth;
-        const videoHeight = video.videoHeight;
-
-        canvas.width = videoWidth;
-        canvas.height = videoHeight;
-
-        const hand = await net.estimateHands(video);
-        // console.log(hand);
-
-        if (hand.length > 0) {
-            const middleFingerGesture = new fp.GestureDescription("middleFinger");
-            middleFingerGesture.addCurl(fp.Finger.Middle, fp.FingerCurl.NoCurl);
-            for (let finger of [fp.Finger.Index, fp.Finger.Ring, fp.Finger.Pinky]) {
-                middleFingerGesture.addCurl(finger, fp.FingerCurl.FullCurl, 1.0);
-                middleFingerGesture.addCurl(finger, fp.FingerCurl.HalfCurl, 0.9);
-            }
-
-            const GE = new fp.GestureEstimator([
-                fp.Gestures.ThumbsUpGesture,
-                middleFingerGesture,
-            ]);
-            const gesture = await GE.estimate(hand[0].landmarks, 8);
-            // console.log(gesture);
-            if (gesture.gestures !== undefined && gesture.gestures.length > 0) {
-                console.log(gesture.gestures);
-
-                const confidence = gesture.gestures.map(
-                    (prediction: any) => {
-                        console.log(prediction.score);
-                        return prediction.score;
-                    }
-                );
-                const maxConfidence = confidence.indexOf(
-                    Math.max.apply(null, confidence)
-                );
-                setGesture(gesture.gestures[maxConfidence].name);
-            } else {
-                setGesture(null);
-            }
         }
-
-        const ctx = canvas.getContext('2d');
-        drawHand(hand, ctx);
-
     }
 }
 
-const drawHand = (predictions: any, ctx: any) => {
+
+export const drawHand = (predictions: any, ctx: any) => {
     if (predictions.length > 0) {
         predictions.forEach((prediction: any) => {
             const landmarks = prediction.landmarks;
