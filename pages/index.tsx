@@ -25,7 +25,7 @@ const Home: NextPage = () => {
     }, 16.7);
   }, []);
 
-  const detectGesture = async (net: tf.LayersModel | any, handposeModel: handpose.HandPose | any) => {
+  const detectGesture = async (net: any | any, handposeModel: handpose.HandPose | any) => {
     if (typeof webcamRef.current !== 'undefined' && webcamRef.current !== null && webcamRef.current.video.readyState === 4) {
       const video = webcamRef.current.video;
       const canvas = canvasRef.current;
