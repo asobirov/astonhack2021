@@ -17,7 +17,7 @@ const Home: NextPage = () => {
   const [drawHandPrediction, setDrawHandPrediction] = useState(false);
 
   const initHandpose = useCallback(async () => {
-    const net = await tf.loadLayersModel('https://astonhack2021.vercel.app/model/model.json');
+    const net = await tf.loadGraphModel('https://astonhack2021.vercel.app/model/model.json');
     const handposeModel = await handpose.load();
     setIsHandposeReady(true);
     setInterval(async () => {
@@ -47,7 +47,7 @@ const Home: NextPage = () => {
       const classes = await obj[2].array();
       const scores = await obj[4].array();
       const ctx = canvas.getContext('2d');
-      // drawHandPrediction && drawHand(await handposeModel.estimateHands(video), ctx);
+      drawHandPrediction && drawHand(await handposeModel.estimateHands(video), ctx);
         
       requestAnimationFrame(() => {
         drawRect(boxes[0], classes[0], scores[0], 0.7, videoWidth, videoHeight, ctx);
