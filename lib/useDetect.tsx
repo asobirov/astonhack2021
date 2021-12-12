@@ -28,13 +28,24 @@ export const detect = async (net: any, webRef: any, canvasRef: any, setGesture: 
             const middleFingerGesture = new fp.GestureDescription("middleFinger");
             middleFingerGesture.addCurl(fp.Finger.Middle, fp.FingerCurl.NoCurl);
             for (let finger of [fp.Finger.Index, fp.Finger.Ring, fp.Finger.Pinky]) {
-                middleFingerGesture.addCurl(finger, fp.FingerCurl.FullCurl, 1.0);
-                middleFingerGesture.addCurl(finger, fp.FingerCurl.HalfCurl, 0.9);
+                middleFingerGesture.addCurl(finger, fp.FingerCurl.FullCurl, 0);
+                middleFingerGesture.addCurl(finger, fp.FingerCurl.HalfCurl, 0.6);
             }
+
+            const okGesture = new fp.GestureDescription("okGesture");
+            for (let finger of [fp.Finger.Middle, fp.Finger.Ring, fp.Finger.Pinky]) {
+                middleFingerGesture.addCurl(finger, fp.FingerCurl.NoCurl);
+                middleFingerGesture.addCurl(finger, fp.FingerCurl.HalfCurl);
+            }
+            okGesture.addCurl(fp.Finger.Index, fp.FingerCurl.HalfCurl, 1);
+            okGesture.addCurl(fp.Finger.Index, fp.FingerCurl.FullCurl, 0.9);
+            okGesture.addCurl(fp.Finger.Thumb, fp.FingerCurl.HalfCurl, 1);
+            okGesture.addCurl(fp.Finger.Thumb, fp.FingerCurl.FullCurl, 0.9);
 
             const GE = new fp.GestureEstimator([
                 fp.Gestures.ThumbsUpGesture,
-                middleFingerGesture,
+                okGesture,
+                // middleFingerGesture,
             ]);
             const gesture = await GE.estimate(hand[0].landmarks, 8);
             // console.log(gesture);
