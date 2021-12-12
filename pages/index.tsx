@@ -17,7 +17,7 @@ const Home: NextPage = () => {
   const [drawHandPrediction, setDrawHandPrediction] = useState(false);
 
   const initHandpose = useCallback(async () => {
-    const net = await tf.loadGraphModel('https://astonhack2021.vercel.app/model/model.json');
+    const net = await tf.loadLayersModel('https://astonhack2021.vercel.app/model/model.json');
     const handposeModel = await handpose.load();
     setIsHandposeReady(true);
     setInterval(async () => {
